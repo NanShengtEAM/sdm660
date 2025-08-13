@@ -1,0 +1,57 @@
+# Reference: <https://postmarketos.org/vendorkernel>
+# Kernel config based on: arch/arm64/configs/sdm660_defconfig
+
+pkgname=linux-oppo-r11s
+pkgver=4.4.153
+pkgrel=1
+pkgdesc="oppo r11s kernel fork"
+arch="aarch64"
+_carch="arm64"
+_flavor="oppo-r11s"
+url="https://kernel.org"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps pmb:cross-native"
+makedepends="
+	bash
+	bc
+	bison
+	devicepkg-dev
+	flex
+	openssl-dev
+	perl
+	clang
+"
+export CC="clang"
+export HOSTCC="clang"
+	export OPPO_TARGET_DEVICE="MSM_17011"
+# Source
+_repository="linux"
+_commit="0becb7d30856bbfde3380ee691540ad608be15da"
+_config="sdm660_defconfig"
+source="
+	$pkgname-$_commit.tar.gz::https://github.com/sdm660-mainline/$_repository/archive/$_commit.tar.gz
+        $_config::https://raw.githubusercontent.com/sdm660-mainline/linux/refs/heads/qcom-sdm660-6.15.y/arch/arm64/configs/sdm660_defconfig
+"
+builddir="$srcdir/$_repository-$_commit"
+_outdir="out"
+
+prepare() {
+	default_prepare
+	REPLACE_GCCH=0
+	. downstreamkernel_prepare
+}
+
+build() {
+	unset LDFLAGS
+	make O="$_outdir" ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+        downstreamkernel_package \
+		"$builddir" "$pkgdir" "$_carch" "$_flavor" "$_outdir"
+}
+
+sha512sums="
+fill me
+"
